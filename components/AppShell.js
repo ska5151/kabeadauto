@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DailyReportView from "./DailyReportView.js";
 import BaljuanaraView from "./BaljuanaraView.js";
+import DaishyuView from "./DaishyuView.js";
 import NotionView from "./NotionView.js";
 import ServerView from "./ServerView.js";
 import {
@@ -10,6 +11,7 @@ import {
   IconShirt,
   IconServer,
   IconSettings,
+  IconStock,
   IconUser,
 } from "./icons.js";
 
@@ -17,6 +19,7 @@ const DAILY_REPORT_TAB_ID = "daily-report";
 const NOTION_TAB_ID = "notion";
 const IDC_TAB_ID = "idc";
 const BALJUANARA_TAB_ID = "baljuanara";
+const DAISHYU_TAB_ID = "daishyu";
 
 function formatClock(date) {
   const hours = String(date.getHours()).padStart(2, "0");
@@ -40,6 +43,8 @@ function renderTabContent(tabId) {
       return <ServerView />;
     case BALJUANARA_TAB_ID:
       return <BaljuanaraView />;
+    case DAISHYU_TAB_ID:
+      return <DaishyuView />;
     default:
       return null;
   }
@@ -62,6 +67,12 @@ export function createMenuItems() {
       label: "서버",
       icon: <IconServer />,
       tabs: [{ id: IDC_TAB_ID, label: "IDC 점검" }],
+    },
+    {
+      id: "daishyu",
+      label: "다이슈",
+      icon: <IconStock />,
+      tabs: [{ id: DAISHYU_TAB_ID, label: "ACTION 체크" }],
     },
     {
       id: "baljuanara",
@@ -175,14 +186,14 @@ export default function AppShell({
         <nav className="sidebar__nav" aria-label="Main navigation">
           <ul className="sidebar__menu">
             {menuList.map((item) => {
-              const isActive = item.id === activeMenuId;
+              const isMenuContext = item.id === activeMenuId;
               const isExpanded = expandedMenuIds.includes(item.id);
               const menuTabs = getMenuTabs(item);
 
               return (
                 <li
                   key={item.id}
-                  className={`sidebar__menu-group${isActive ? " is-active" : ""}${isExpanded ? " is-expanded" : ""}`}
+                  className={`sidebar__menu-group${isExpanded ? " is-expanded" : ""}`}
                 >
                   <div className="sidebar__menu-row">
                     <button
@@ -217,7 +228,7 @@ export default function AppShell({
                     <ul className="sidebar__submenu">
                       {menuTabs.map((tab) => {
                         const isTabActive =
-                          isActive && tab.id === activeTabId;
+                          isMenuContext && tab.id === activeTabId;
                         return (
                           <li key={tab.id}>
                             <button
@@ -256,6 +267,12 @@ export default function AppShell({
           className="workspace-content"
           role="tabpanel"
           aria-label={activeTab?.label ?? "Content"}
+          onMouseDown={() => {
+            const el = document.activeElement;
+            if (el instanceof HTMLElement && el.closest(".sidebar__menu-row")) {
+              el.blur();
+            }
+          }}
         >
           {activeTabId ? renderTabContent(activeTabId) : null}
         </section>
