@@ -21,7 +21,7 @@ cp .env.example .env.local
 ## Commands
 
 ```bash
-npm run dev      # http://localhost:3000 — 패널 UI
+npm run dev      # http://localhost:1177 — 패널 UI
 npm run build
 npm run start
 npm run fetch -- --db=primary

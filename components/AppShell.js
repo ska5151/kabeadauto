@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DailyReportView from "./DailyReportView.js";
 import BaljuanaraView from "./BaljuanaraView.js";
+import NotionView from "./NotionView.js";
 import ServerView from "./ServerView.js";
 import {
   IconChevronDown,
@@ -13,8 +14,17 @@ import {
 } from "./icons.js";
 
 const DAILY_REPORT_TAB_ID = "daily-report";
+const NOTION_TAB_ID = "notion";
 const IDC_TAB_ID = "idc";
 const BALJUANARA_TAB_ID = "baljuanara";
+
+function formatClock(date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${hours}시 ${minutes}분 ${seconds}초`;
+}
 
 function getMenuTabs(item) {
   return item.tabs ?? (item.tab ? [item.tab] : []);
@@ -22,6 +32,8 @@ function getMenuTabs(item) {
 
 function renderTabContent(tabId) {
   switch (tabId) {
+    case NOTION_TAB_ID:
+      return <NotionView />;
     case DAILY_REPORT_TAB_ID:
       return <DailyReportView />;
     case IDC_TAB_ID:
@@ -40,7 +52,10 @@ export function createMenuItems() {
       id: "personal",
       label: "개인",
       icon: <IconUser />,
-      tabs: [{ id: DAILY_REPORT_TAB_ID, label: "일일 보고" }],
+      tabs: [
+        { id: NOTION_TAB_ID, label: "TODO" },
+        { id: DAILY_REPORT_TAB_ID, label: "일일 보고" },
+      ],
     },
     {
       id: "server",
@@ -71,8 +86,22 @@ export default function AppShell({
   );
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [expandedMenuIds, setExpandedMenuIds] = useState([]);
+  const [currentTime, setCurrentTime] = useState("");
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
+
+  useEffect(() => {
+    const updateClock = () => {
+      setCurrentTime(formatClock(new Date()));
+    };
+
+    updateClock();
+    const timerId = window.setInterval(updateClock, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, []);
 
   const activateMenu = useCallback((item, tabIdToKeep) => {
     const menuTabs = getMenuTabs(item);
@@ -219,11 +248,7 @@ export default function AppShell({
       <div className="workspace">
         <header className="workspace-header">
           <div className="workspace-header__top workspace-header__top--profile-only">
-            <div className="workspace-header__actions">
-              <div className="workspace-header__profile">
-                <span className="workspace-header__name">권성윤</span>
-              </div>
-            </div>
+            <time className="workspace-header__clock">{currentTime}</time>
           </div>
         </header>
 

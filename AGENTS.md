@@ -18,11 +18,12 @@ Admin Portal 스타일 **2열 레이아웃** (`components/AppShell.js`).
 
 | 영역 | 역할 |
 |------|------|
-| 좌측 사이드바 (`#1F2937`) | 로고·검색·메뉴(`MENU_ITEMS`, 현재 `[]`)·설정 |
+| 좌측 사이드바 (`#0F172A`) | 로고·검색·메뉴(`MENU_ITEMS`, 현재 `[]`)·설정 |
 | 우측 상단 (`#111827`) | 검색·프로필·**탭 바** (`INITIAL_TABS`, 현재 `[]`) |
 | 우측 하단 | 활성 탭의 `content` 표시 (탭 클릭 시 전환) |
 
-- 좌측 메뉴 **개인** 선택 시 우측 상단 **일일보고** 탭이 열리고 하단에 `DailyReportView`가 표시됩니다 (`createMenuItems()`).
+- 좌측 메뉴 **개인** 하위 메뉴에는 **TODO**, **일일보고**가 있으며 각각 `NotionView`, `DailyReportView`가 표시됩니다 (`createMenuItems()`).
+- **TODO** 메뉴는 `app/api/notion-table/route.js`를 통해 `NOTION_DATABASE_ID` 데이터베이스에서 `PARA = Project 또는 Area` 항목을 조회하고, `PARA` 그룹별 보드로 표시·수정합니다.
 - 메뉴·탭 추가 시 `components/AppShell.js`의 `createMenuItems()`에 `{ id, label, icon?, tab?: { id, label, content } }` 형태로 넣습니다.
 - 폰트: Inter (`next/font`). 아이콘: Feather 스타일 SVG (`components/icons.js`).
 
@@ -80,7 +81,7 @@ npm install
 
 # 개발 서버 (웹 UI + API)
 npm run dev
-# 브라우저: http://localhost:3000 — 메인 빈 레이아웃 확인
+# 브라우저: http://localhost:1177 — 메인 빈 레이아웃 확인
 
 # 프로덕션 빌드·실행
 npm run build
@@ -111,6 +112,10 @@ MYSQL_DATABASE_PRIMARY=
 # DB 2
 MYSQL_HOST_SECONDARY=
 ...
+
+# Notion API
+NOTION_API_TOKEN=
+NOTION_DATABASE_ID=
 ```
 
 또는 `DATABASE_URL_PRIMARY`, `DATABASE_URL_SECONDARY` 형태의 단일 URL도 허용합니다.
