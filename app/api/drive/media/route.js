@@ -1,8 +1,19 @@
 import { resolveAccessToken } from "@/lib/accessToken";
 import { getDriveClient, getDriveErrorMessage } from "@/lib/drive";
+import { downloadDriveFileContent } from "@/lib/driveDownload";
 
-function isMediaMimeType(mimeType) {
-  return mimeType?.startsWith("image/") || mimeType?.startsWith("video/");
+const GOOGLE_PDF_PREVIEW_TYPES = new Set([
+  "application/vnd.google-apps.form",
+  "application/vnd.google-apps.drawing",
+]);
+
+function isPreviewMimeType(mimeType, name) {
+  if (mimeType?.startsWith("image/") || mimeType?.startsWith("video/")) {
+    return true;
+  }
+  if (mimeType === "application/pdf") return true;
+  if (GOOGLE_PDF_PREVIEW_TYPES.has(mimeType)) return true;
+  return (name || "").toLowerCase().endsWith(".pdf");
 }
 
 export async function GET(request) {
@@ -24,11 +35,33 @@ export async function GET(request) {
     const { data: file } = await drive.files.get({
       fileId,
       supportsAllDrives: true,
-      fields: "mimeType",
+      fields: "name,mimeType",
     });
 
-    if (!isMediaMimeType(file.mimeType)) {
-      return new Response("Not a media file", { status: 400 });
+    if (!isPreviewMimeType(file.mimeType, file.name)) {
+      return new Response("Not a previewable file", { status: 400 });
+    }
+
+    const isPdfPreview =
+      file.mimeType === "application/pdf" ||
+      GOOGLE_PDF_PREVIEW_TYPES.has(file.mimeType) ||
+      (file.name || "").toLowerCase().endsWith(".pdf");
+
+    if (isPdfPreview) {
+      const { contentType, body } = await downloadDriveFileContent({
+        accessToken,
+        drive,
+        file: { ...file, id: fileId },
+      });
+
+      return new Response(body, {
+        headers: {
+          "Content-Type": contentType.includes("pdf")
+            ? contentType
+            : "application/pdf",
+          "Cache-Control": "private, max-age=3600",
+        },
+      });
     }
 
     const mediaUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;

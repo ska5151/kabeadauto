@@ -92,7 +92,7 @@ export default function FileMenu({ file, buttonClassName = "" }) {
       ? createPortal(
           <div
             ref={menuRef}
-            className="fixed z-[100] overflow-hidden rounded-lg border border-[#dadce0] bg-white py-1 shadow-lg"
+            className="fixed z-[100] overflow-hidden rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl shadow-slate-950/40"
             style={{
               top: menuStyle.top,
               left: menuStyle.left,
@@ -103,9 +103,9 @@ export default function FileMenu({ file, buttonClassName = "" }) {
               type="button"
               onClick={handleDownload}
               disabled={isDownloading}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-[#3c4043] transition-colors hover:bg-[#f1f3f4] active:bg-[#e8eaed] disabled:opacity-60"
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-slate-800 active:bg-slate-700 disabled:opacity-60"
             >
-              <Download className="h-4 w-4 shrink-0 text-[#5f6368]" />
+              <Download className="h-4 w-4 shrink-0 text-slate-400" />
               {isDownloading ? "다운로드 중..." : "다운로드"}
             </button>
           </div>,
@@ -127,7 +127,7 @@ export default function FileMenu({ file, buttonClassName = "" }) {
           updateMenuPosition();
           setOpen(true);
         }}
-        className={`shrink-0 rounded-full p-1 text-[#5f6368] transition-colors hover:bg-[#f1f3f4] active:bg-[#e8eaed] ${buttonClassName}`}
+        className={`shrink-0 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-800/80 active:bg-slate-700/80 ${buttonClassName}`}
         aria-label={`${file.name} 메뉴`}
         aria-expanded={open}
         aria-haspopup="menu"

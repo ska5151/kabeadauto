@@ -1,7 +1,7 @@
 export default function FileTypeIcon({ type, thumbnailUrl }) {
   if (type === "thumbnail" && thumbnailUrl) {
     return (
-      <div className="flex h-full w-full items-center justify-center overflow-hidden bg-[#f1f3f4]">
+      <div className="flex h-full w-full items-center justify-center overflow-hidden bg-slate-800">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={thumbnailUrl}
@@ -15,7 +15,7 @@ export default function FileTypeIcon({ type, thumbnailUrl }) {
 
   if (type === "logo") {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-white">
+      <div className="flex h-full w-full items-center justify-center bg-slate-900">
         <svg viewBox="0 0 48 48" className="h-14 w-14">
           <path
             fill="#FFC107"
@@ -39,31 +39,31 @@ export default function FileTypeIcon({ type, thumbnailUrl }) {
   }
 
   const configs = {
-    pdf: { bg: "#fce8e6", label: "PDF", labelColor: "#d93025", fold: "#ea4335" },
-    doc: { bg: "#e8f0fe", label: "DOC", labelColor: "#1a73e8", fold: "#4285f4" },
-    txt: { bg: "#f1f3f4", label: "TXT", labelColor: "#5f6368", fold: "#9aa0a6" },
-    xls: { bg: "#e6f4ea", label: "XLS", labelColor: "#188038", fold: "#34a853" },
-    ppt: { bg: "#fce8e6", label: "PPT", labelColor: "#d93025", fold: "#ea4335" },
-    zip: { bg: "#f1f3f4", label: "ZIP", labelColor: "#5f6368", fold: "#80868b" },
-    audio: { bg: "#f3e8fd", label: "AUD", labelColor: "#9334e6", fold: "#a142f4" },
-    file: { bg: "#f1f3f4", label: "FILE", labelColor: "#5f6368", fold: "#9aa0a6" },
+    pdf: { bg: "#451a1a", label: "PDF", labelColor: "#fca5a5", fold: "#ef4444" },
+    doc: { bg: "#082f49", label: "DOC", labelColor: "#7dd3fc", fold: "#38bdf8" },
+    txt: { bg: "#1e293b", label: "TXT", labelColor: "#cbd5e1", fold: "#64748b" },
+    xls: { bg: "#052e16", label: "XLS", labelColor: "#86efac", fold: "#22c55e" },
+    ppt: { bg: "#431407", label: "PPT", labelColor: "#fdba74", fold: "#f97316" },
+    zip: { bg: "#1e293b", label: "ZIP", labelColor: "#cbd5e1", fold: "#64748b" },
+    audio: { bg: "#3b0764", label: "AUD", labelColor: "#d8b4fe", fold: "#a855f7" },
+    file: { bg: "#1e293b", label: "FILE", labelColor: "#cbd5e1", fold: "#64748b" },
     "image-yellow": {
-      bg: "#fef7e0",
+      bg: "#422006",
       label: "IMG",
-      labelColor: "#f9ab00",
-      fold: "#fbbc04",
+      labelColor: "#fde68a",
+      fold: "#f59e0b",
     },
     "image-green": {
-      bg: "#e6f4ea",
+      bg: "#052e16",
       label: "IMG",
-      labelColor: "#188038",
-      fold: "#34a853",
+      labelColor: "#86efac",
+      fold: "#22c55e",
     },
     "pdf-yellow": {
-      bg: "#fef7e0",
+      bg: "#422006",
       label: "PDF",
-      labelColor: "#f9ab00",
-      fold: "#fbbc04",
+      labelColor: "#fde68a",
+      fold: "#f59e0b",
     },
   };
 
@@ -77,7 +77,7 @@ export default function FileTypeIcon({ type, thumbnailUrl }) {
       <div className="relative h-[72px] w-[56px]">
         <div
           className="absolute inset-0 rounded-sm shadow-sm"
-          style={{ backgroundColor: "#fff" }}
+          style={{ backgroundColor: "#f8fafc" }}
         />
         <div
           className="absolute right-0 top-0 h-4 w-4"

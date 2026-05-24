@@ -22,17 +22,17 @@ function InAppBrowserGuide({ appName }) {
   };
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-[#dadce0] bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-[#202124]">
+    <div className="w-full max-w-md rounded-2xl border border-slate-700/70 bg-slate-950/75 p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl">
+      <h2 className="text-lg font-semibold text-slate-100">
         {appName}에서는 Google 로그인이 차단됩니다
       </h2>
-      <p className="mt-3 text-sm leading-6 text-[#5f6368]">
+      <p className="mt-3 text-sm leading-6 text-slate-400">
         Google 보안 정책상 카카오톡·LINE 등 <strong>앱 내 브라우저</strong>에서는
         로그인할 수 없습니다. Chrome, Safari, Samsung Internet 같은{" "}
         <strong>일반 브라우저</strong>에서 열어 주세요.
       </p>
 
-      <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-6 text-[#3c4043]">
+      <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
         <li>
           우측 상단 <strong>⋮</strong> 또는 <strong>⋯</strong> 메뉴 선택
         </li>
@@ -46,14 +46,14 @@ function InAppBrowserGuide({ appName }) {
         <button
           type="button"
           onClick={handleCopyUrl}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a73e8] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1765cc] active:bg-[#1557b0]"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-400 active:bg-sky-600"
         >
           <ExternalLink className="h-4 w-4" />
           주소 복사 후 브라우저에서 열기
         </button>
       </div>
 
-      <p className="mt-4 text-center text-xs text-[#80868b]">
+      <p className="mt-4 text-center text-xs text-slate-500">
         오류 코드: disallowed_useragent (Google OAuth 제한)
       </p>
     </div>
@@ -104,10 +104,10 @@ export default function LoginScreen() {
 
   if (inAppBrowser) {
     return (
-      <div className="flex min-h-full flex-col items-center justify-center bg-[#f8f9fa] p-6">
+      <div className="flex min-h-full flex-col items-center justify-center bg-transparent p-6">
         <div className="mb-8 flex items-center gap-3">
           <DriveLogo />
-          <h1 className="text-2xl font-semibold text-[#202124]">Drive Manager</h1>
+          <h1 className="text-2xl font-semibold text-slate-100">Drive Manager</h1>
         </div>
         <InAppBrowserGuide appName={inAppBrowser} />
       </div>
@@ -115,16 +115,16 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-[#f8f9fa] p-6">
+    <div className="flex min-h-full flex-col items-center justify-center bg-transparent p-6">
       <div className="mb-8 flex items-center gap-3">
         <DriveLogo />
-        <h1 className="text-2xl font-semibold text-[#202124]">Drive Manager</h1>
+        <h1 className="text-2xl font-semibold text-slate-100">Drive Manager</h1>
       </div>
 
       {isSigningIn ? (
         <>
           <LoadingFooter />
-          <p className="mt-4 text-center text-sm leading-6 text-[#5f6368]">
+          <p className="mt-4 text-center text-sm leading-6 text-slate-400">
             Google Drive 접근 권한으로 연결 중...
             <br />
             <span className="text-xs">(Drive 파일 보기 권한 승인 필요)</span>
@@ -132,13 +132,13 @@ export default function LoginScreen() {
         </>
       ) : (
         <div className="w-full max-w-sm text-center">
-          <p className="mb-4 text-sm text-[#5f6368]">
+          <p className="mb-4 text-sm text-slate-400">
             Google 계정으로 Drive에 연결합니다.
           </p>
           <button
             type="button"
             onClick={handleSignIn}
-            className="w-full rounded-lg bg-[#1a73e8] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1765cc]"
+            className="w-full rounded-lg bg-sky-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-400 active:bg-sky-600"
           >
             Google로 로그인
           </button>

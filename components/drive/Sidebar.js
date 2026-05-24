@@ -36,7 +36,7 @@ function FolderItem({
           <button
             type="button"
             onClick={() => onToggle(folder.id)}
-            className="flex h-11 w-10 shrink-0 self-center items-center justify-center rounded-lg text-[#5f6368] transition-colors hover:bg-[#f1f3f4] active:bg-[#e8eaed] md:h-9 md:w-8"
+            className="flex h-11 w-10 shrink-0 self-center items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800/80 active:bg-slate-700/80 md:h-9 md:w-8"
             aria-label={`${folder.name} ${isExpanded ? "접기" : "펼치기"}`}
           >
             {isLoading ? (
@@ -53,15 +53,15 @@ function FolderItem({
         <button
           type="button"
           onClick={() => onSelect(folder.id)}
-          className={`flex min-h-11 flex-1 items-start gap-2 rounded-lg px-2 py-2.5 text-left text-sm transition-colors active:bg-[#e8eaed] md:min-h-9 md:py-2 ${
+          className={`flex min-h-11 flex-1 items-start gap-2 rounded-lg px-2 py-2.5 text-left text-sm transition-colors active:bg-slate-700/80 md:min-h-9 md:py-2 ${
             isSelected
-              ? "bg-[#e8f0fe] text-[#1a73e8]"
-              : "text-[#3c4043] hover:bg-[#f1f3f4]"
+              ? "bg-sky-500/15 text-sky-300 ring-1 ring-sky-400/25"
+              : "text-slate-300 hover:bg-slate-800/70"
           }`}
         >
           <Folder
             className={`mt-0.5 h-4 w-4 shrink-0 ${
-              isSelected ? "text-[#1a73e8]" : "text-[#5f6368]"
+              isSelected ? "text-sky-300" : "text-slate-500"
             }`}
           />
           <span className="line-clamp-2 min-w-0 flex-1 break-words leading-snug">
@@ -102,7 +102,7 @@ export default function Sidebar({
 }) {
   return (
     <aside
-      className={`flex min-h-0 flex-col border-r border-[#dadce0] bg-white transition-all duration-200 ease-out ${
+      className={`flex min-h-0 flex-col border-r border-slate-700/70 bg-slate-950/45 transition-all duration-200 ease-out ${
         collapsed
           ? "hidden md:flex md:w-0 md:min-w-0 md:overflow-hidden md:border-r-0 md:p-0 md:opacity-0 md:pointer-events-none"
           : "flex h-full min-h-0 w-full shrink-0 p-4 md:h-auto md:w-[260px]"
@@ -112,13 +112,13 @@ export default function Sidebar({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#3c4043] transition-colors hover:bg-[#f1f3f4] active:bg-[#e8eaed]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800/80 active:bg-slate-700/80"
           aria-label="메뉴 접기"
         >
           <PanelLeftClose className="h-5 w-5" />
         </button>
         <DriveLogo />
-        <span className="truncate text-lg font-semibold text-[#202124]">
+        <span className="truncate text-lg font-semibold text-slate-100">
           Drive Manager
         </span>
       </div>
@@ -126,7 +126,7 @@ export default function Sidebar({
       <button
         type="button"
         onClick={onRefresh}
-        className="mb-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#dadce0] bg-white px-4 py-2.5 text-sm font-medium text-[#3c4043] transition-colors hover:bg-[#f8f9fa] active:bg-[#f1f3f4] md:min-h-0"
+        className="mb-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-700/80 bg-slate-900/70 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/90 active:bg-slate-700/90 md:min-h-0"
       >
         <svg
           className="h-4 w-4"

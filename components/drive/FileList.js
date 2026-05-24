@@ -1,7 +1,7 @@
 "use client";
 
 import { Folder } from "lucide-react";
-import { isMediaFile } from "@/lib/fileType";
+import { isPreviewableFile } from "@/lib/fileType";
 import FileMenu from "./FileMenu";
 import FileTypeIcon from "./FileTypeIcon";
 
@@ -16,12 +16,12 @@ export default function FileList({
   if (!hasItems) return null;
 
   return (
-    <div className="overflow-visible rounded-xl border border-[#dadce0]">
+    <div className="overflow-visible rounded-xl border border-slate-700/70 bg-slate-900/55">
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-[#dadce0] bg-[#f8f9fa]">
+        <thead className="border-b border-slate-700/70 bg-slate-950/50">
           <tr>
-            <th className="px-4 py-3 font-medium text-[#5f6368]">이름</th>
-            <th className="hidden px-4 py-3 font-medium text-[#5f6368] sm:table-cell">
+            <th className="px-4 py-3 font-medium text-slate-400">이름</th>
+            <th className="hidden px-4 py-3 font-medium text-slate-400 sm:table-cell">
               유형
             </th>
             <th className="w-10 px-4 py-3" />
@@ -31,32 +31,34 @@ export default function FileList({
           {folders.map((folder) => (
             <tr
               key={folder.id}
-              className="group cursor-pointer border-b border-[#dadce0] hover:bg-[#f8f9fa] active:bg-[#f1f3f4]"
+              className="group cursor-pointer border-b border-slate-700/70 hover:bg-slate-800/60 active:bg-slate-700/70"
               onClick={() => onFolderClick?.(folder.id)}
             >
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#e8f0fe]">
-                    <Folder className="h-4 w-4 text-[#1a73e8]" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-sky-500/15 ring-1 ring-sky-400/20">
+                    <Folder className="h-4 w-4 text-sky-300" />
                   </div>
-                  <span className="truncate font-medium text-[#3c4043]">
+                  <span className="truncate font-medium text-slate-100">
                     {folder.name}
                   </span>
                 </div>
               </td>
-              <td className="hidden px-4 py-3 text-[#5f6368] sm:table-cell">
+              <td className="hidden px-4 py-3 text-slate-400 sm:table-cell">
                 폴더
               </td>
-              <td className="px-4 py-3" />
+              <td className="px-4 py-3">
+                <FileMenu file={folder} />
+              </td>
             </tr>
           ))}
           {files.map((file) => {
-            const canPreview = isMediaFile(file);
+            const canPreview = isPreviewableFile(file);
 
             return (
               <tr
                 key={file.id}
-                className={`group border-b border-[#dadce0] last:border-b-0 hover:bg-[#f8f9fa] ${
+                className={`group border-b border-slate-700/70 last:border-b-0 hover:bg-slate-800/60 ${
                   canPreview ? "cursor-pointer" : ""
                 }`}
                 onClick={() => canPreview && onMediaClick?.(file)}
@@ -69,10 +71,10 @@ export default function FileList({
                         thumbnailUrl={file.thumbnailUrl}
                       />
                     </div>
-                    <span className="truncate text-[#3c4043]">{file.name}</span>
+                    <span className="truncate text-slate-200">{file.name}</span>
                   </div>
                 </td>
-                <td className="hidden px-4 py-3 text-[#5f6368] sm:table-cell">
+                <td className="hidden px-4 py-3 text-slate-400 sm:table-cell">
                   {file.typeLabel || file.type}
                 </td>
                 <td className="px-4 py-3">

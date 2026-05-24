@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect } from "react";
-import { getMediaUrl, isVideoFile } from "@/lib/fileType";
+import { getMediaUrl, isPdfFile, isVideoFile } from "@/lib/fileType";
 
 export default function MediaPreviewModal({ file, onClose }) {
   useEffect(() => {
@@ -25,6 +25,7 @@ export default function MediaPreviewModal({ file, onClose }) {
 
   const mediaUrl = getMediaUrl(file.id);
   const isVideo = isVideoFile(file);
+  const isPdf = isPdfFile(file);
 
   return (
     <div
@@ -41,7 +42,7 @@ export default function MediaPreviewModal({ file, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute -right-2 -top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#3c4043] shadow-md transition-colors hover:bg-white active:bg-[#f1f3f4] sm:-right-3 sm:-top-3"
+          className="absolute -right-2 -top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-900/90 text-slate-200 shadow-md transition-colors hover:bg-slate-800 active:bg-slate-700 sm:-right-3 sm:-top-3"
           aria-label="닫기"
         >
           <X className="h-5 w-5" />
@@ -58,6 +59,13 @@ export default function MediaPreviewModal({ file, onClose }) {
           >
             브라우저가 동영상 재생을 지원하지 않습니다.
           </video>
+        ) : isPdf ? (
+          <iframe
+            key={file.id}
+            src={mediaUrl}
+            title={`${file.name} PDF 미리보기`}
+            className="h-[80vh] w-[min(90vw,56rem)] rounded-lg border border-slate-700 bg-white"
+          />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img

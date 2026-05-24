@@ -1,14 +1,14 @@
 "use client";
 
-import { isMediaFile } from "@/lib/fileType";
+import { isPreviewableFile } from "@/lib/fileType";
 import FileMenu from "./FileMenu";
 import FileTypeIcon from "./FileTypeIcon";
 
 export default function FileCard({ file, onMediaClick }) {
-  const canPreview = isMediaFile(file);
+  const canPreview = isPreviewableFile(file);
 
   return (
-    <div className="group flex flex-col rounded-xl border border-[#dadce0] bg-white transition-shadow hover:shadow-md">
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/65 transition-all hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20">
       <button
         type="button"
         onClick={() => canPreview && onMediaClick?.(file)}
@@ -23,7 +23,7 @@ export default function FileCard({ file, onMediaClick }) {
         <FileTypeIcon type={file.type} thumbnailUrl={file.thumbnailUrl} />
       </button>
       <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-        <p className="truncate text-sm text-[#3c4043]">{file.name}</p>
+        <p className="truncate text-sm text-slate-200">{file.name}</p>
         <FileMenu file={file} />
       </div>
     </div>

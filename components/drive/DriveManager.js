@@ -55,7 +55,7 @@ export default function DriveManager() {
   const { data: session, status } = useSession();
   const [serverAuth, setServerAuth] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("list");
   const [folderTree, setFolderTree] = useState([ROOT_FOLDER]);
   const [selectedFolderId, setSelectedFolderId] = useState("root");
   const [expandedIds, setExpandedIds] = useState(new Set(["root"]));
@@ -447,7 +447,7 @@ export default function DriveManager() {
 
   if (isAppLoading) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-[#f8f9fa]">
+      <div className="flex h-dvh items-center justify-center bg-transparent">
         <LoadingFooter message="파일을 불러오는 중..." />
       </div>
     );
@@ -458,8 +458,8 @@ export default function DriveManager() {
   }
 
   return (
-    <div className="flex h-full min-h-0 bg-[#f8f9fa] sm:min-h-full sm:items-center sm:justify-center sm:p-4 md:p-6">
-      <div className="relative flex h-full min-h-0 w-full max-w-6xl overflow-hidden bg-white sm:h-[calc(100%-32px)] sm:rounded-2xl sm:border sm:border-[#dadce0] sm:shadow-sm md:h-[calc(100%-48px)]">
+    <div className="flex h-full min-h-0 bg-transparent sm:min-h-full sm:items-center sm:justify-start sm:p-4 md:p-6">
+      <div className="relative flex h-full min-h-0 w-full max-w-6xl overflow-hidden bg-slate-950/75 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:h-[calc(100%-32px)] sm:rounded-2xl sm:border sm:border-slate-700/70 md:h-[calc(100%-48px)]">
         <Sidebar
           folders={folderTree}
           selectedId={selectedFolderId}
@@ -477,12 +477,12 @@ export default function DriveManager() {
             sidebarCollapsed ? "flex" : "hidden md:flex"
           }`}
         >
-          <header className="flex items-center justify-between gap-2 border-b border-[#dadce0] px-3 py-3 sm:px-6 sm:py-4">
+          <header className="flex items-center justify-between gap-2 border-b border-slate-700/70 bg-slate-950/55 px-3 py-3 sm:px-6 sm:py-4">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed((prev) => !prev)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#3c4043] transition-colors hover:bg-[#f1f3f4] active:bg-[#e8eaed]"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800/80 active:bg-slate-700/80"
                 aria-label={sidebarCollapsed ? "메뉴 펼치기" : "메뉴 접기"}
               >
                 {sidebarCollapsed ? (
@@ -493,16 +493,16 @@ export default function DriveManager() {
               </button>
               <DriveLogo />
               <div className="min-w-0">
-                <h1 className="truncate text-lg font-semibold text-[#202124] sm:text-xl">
+                <h1 className="truncate text-lg font-semibold text-slate-100 sm:text-xl">
                   Drive Manager
                 </h1>
                 {serverAuth ? (
-                  <p className="hidden text-xs text-[#5f6368] sm:block">
+                  <p className="hidden text-xs text-slate-400 sm:block">
                     서버 인증 (로그인 불필요)
                   </p>
                 ) : (
                   session?.user?.email && (
-                    <p className="hidden truncate text-xs text-[#5f6368] sm:block">
+                    <p className="hidden truncate text-xs text-slate-400 sm:block">
                       {session.user.email}
                     </p>
                   )
@@ -515,7 +515,7 @@ export default function DriveManager() {
                 <button
                   type="button"
                   onClick={() => signOut()}
-                  className="rounded-lg border border-[#dadce0] px-2 py-2 text-sm text-[#3c4043] hover:bg-[#f8f9fa] sm:px-3"
+                  className="rounded-lg border border-slate-700/80 px-2 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-800/80 sm:px-3"
                 >
                   <span className="hidden sm:inline">로그아웃</span>
                   <span className="sm:hidden">나가기</span>
@@ -525,17 +525,17 @@ export default function DriveManager() {
           </header>
 
           {canGoBack && (
-            <div className="border-b border-[#e8eaed] bg-[#fafbfc]">
+            <div className="border-b border-slate-700/70 bg-slate-900/55">
               <FolderNavBar folderName={currentFolderName} onBack={handleBack} />
             </div>
           )}
 
           <div
             ref={scrollContainerRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-5 sm:pb-5"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-950/25 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-5 sm:pb-5"
           >
             {error && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 rounded-lg border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200">
                 {error}
               </div>
             )}
@@ -543,7 +543,7 @@ export default function DriveManager() {
             {isLoadingFiles && files.length === 0 && subfolders.length === 0 ? (
               <LoadingFooter message="파일을 불러오는 중..." />
             ) : files.length === 0 && subfolders.length === 0 ? (
-              <p className="py-12 text-center text-sm text-[#5f6368]">
+              <p className="py-12 text-center text-sm text-slate-400">
                 이 폴더가 비어 있습니다.
               </p>
             ) : view === "grid" ? (
@@ -571,7 +571,7 @@ export default function DriveManager() {
                     <button
                       type="button"
                       onClick={tryLoadMore}
-                      className="rounded-lg border border-[#dadce0] bg-white px-5 py-2.5 text-sm font-medium text-[#3c4043] transition-colors hover:bg-[#f8f9fa] active:bg-[#f1f3f4]"
+                      className="rounded-lg border border-slate-700/80 bg-slate-900/80 px-5 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 active:bg-slate-700"
                     >
                       더 불러오기
                     </button>
