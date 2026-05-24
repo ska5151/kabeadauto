@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DailyReportView from "./DailyReportView.js";
+import DriveView from "./DriveView.js";
 import BaljuanaraView from "./BaljuanaraView.js";
 import DaishyuView from "./DaishyuView.js";
 import NotionView from "./NotionView.js";
@@ -16,6 +17,7 @@ import {
 } from "./icons.js";
 
 const DAILY_REPORT_TAB_ID = "daily-report";
+const DRIVE_TAB_ID = "drive";
 const NOTION_TAB_ID = "notion";
 const IDC_TAB_ID = "idc";
 const BALJUANARA_TAB_ID = "baljuanara";
@@ -35,6 +37,8 @@ function getMenuTabs(item) {
 
 function renderTabContent(tabId) {
   switch (tabId) {
+    case DRIVE_TAB_ID:
+      return <DriveView />;
     case NOTION_TAB_ID:
       return <NotionView />;
     case DAILY_REPORT_TAB_ID:
@@ -58,6 +62,7 @@ export function createMenuItems() {
       label: "개인",
       icon: <IconUser />,
       tabs: [
+        { id: DRIVE_TAB_ID, label: "DRIVE" },
         { id: NOTION_TAB_ID, label: "TODO" },
         { id: DAILY_REPORT_TAB_ID, label: "일일 보고" },
       ],
@@ -165,6 +170,22 @@ export default function AppShell({
   }, [initialTabs]);
 
   const menuList = useMemo(() => menuItems, [menuItems]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabId = params.get("tab");
+    if (!tabId) return;
+
+    const targetItem = menuList.find((item) =>
+      getMenuTabs(item).some((tab) => tab.id === tabId),
+    );
+    if (!targetItem) return;
+
+    activateMenu(targetItem, tabId);
+    setExpandedMenuIds((prev) =>
+      prev.includes(targetItem.id) ? prev : [...prev, targetItem.id],
+    );
+  }, [activateMenu, menuList]);
 
   return (
     <div className="app-shell">

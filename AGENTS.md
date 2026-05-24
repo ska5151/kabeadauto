@@ -22,7 +22,7 @@ Admin Portal 스타일 **2열 레이아웃** (`components/AppShell.js`).
 | 우측 상단 (`#111827`) | 검색·프로필·**탭 바** (`INITIAL_TABS`, 현재 `[]`) |
 | 우측 하단 | 활성 탭의 `content` 표시 (탭 클릭 시 전환) |
 
-- 좌측 메뉴 **개인** 하위 메뉴에는 **TODO**, **일일보고**가 있으며 각각 `NotionView`, `DailyReportView`가 표시됩니다 (`createMenuItems()`).
+- 좌측 메뉴 **개인** 하위 메뉴에는 **DRIVE**, **TODO**, **일일보고**가 있으며 각각 `DriveView`, `NotionView`, `DailyReportView`가 표시됩니다 (`createMenuItems()`).
 - **TODO** 메뉴는 `app/api/notion-table/route.js`를 통해 `NOTION_DATABASE_ID` 데이터베이스에서 `PARA = Project 또는 Area` 항목을 조회하고, `PARA` 그룹별 보드로 표시·수정합니다.
 - 메뉴·탭 추가 시 `components/AppShell.js`의 `createMenuItems()`에 `{ id, label, icon?, tab?: { id, label, content } }` 형태로 넣습니다.
 - 폰트: Inter (`next/font`). 아이콘: Feather 스타일 SVG (`components/icons.js`).
@@ -123,6 +123,14 @@ MYSQL_DATABASE_DAISSUE=
 # Notion API
 NOTION_API_TOKEN=
 NOTION_DATABASE_ID=
+
+# Google Drive API (DRIVE 메뉴)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REFRESH_TOKEN=
+AUTH_SECRET=
+NEXTAUTH_SECRET=
+ROOT_FOLDER_ID=root
 ```
 
 또는 `DATABASE_URL_PRIMARY`, `DATABASE_URL_SECONDARY` 형태의 단일 URL도 허용합니다.
