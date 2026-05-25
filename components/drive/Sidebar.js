@@ -119,7 +119,7 @@ export default function Sidebar({
         </button>
         <DriveLogo />
         <span className="truncate text-lg font-semibold text-slate-100">
-          Drive Manager
+          Google Drive
         </span>
       </div>
 

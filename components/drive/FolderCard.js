@@ -3,7 +3,14 @@
 import { Folder } from "lucide-react";
 import FileMenu from "./FileMenu";
 
-export default function FolderCard({ folder, onClick }) {
+export default function FolderCard({
+  folder,
+  parentId,
+  onClick,
+  onCopied,
+  onDeleted,
+  onRenamed,
+}) {
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/65 text-left transition-all hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20">
       <button
@@ -19,7 +26,13 @@ export default function FolderCard({ folder, onClick }) {
         <p className="truncate text-sm font-medium text-slate-100">
           {folder.name}
         </p>
-        <FileMenu file={folder} />
+        <FileMenu
+          file={folder}
+          parentId={parentId}
+          onCopied={onCopied}
+          onDeleted={onDeleted}
+          onRenamed={onRenamed}
+        />
       </div>
     </div>
   );

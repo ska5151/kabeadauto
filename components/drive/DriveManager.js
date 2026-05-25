@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FolderPlus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import DriveLogo from "./DriveLogo";
@@ -13,9 +13,12 @@ import MediaPreviewModal from "./MediaPreviewModal";
 import Sidebar from "./Sidebar";
 import ViewToggle from "./ViewToggle";
 import {
+  addFolderToTree,
   findFolder,
   findParentFolder,
   mapFolderForDisplay,
+  removeFolderFromTree,
+  renameFolderInTree,
   updateFolderChildren,
 } from "@/lib/fileType";
 
@@ -28,6 +31,10 @@ function isInsufficientScopeError(message) {
 async function reauthForDriveScope() {
   await signOut({ redirect: false });
   window.location.href = "/";
+}
+
+function hasDraggedFiles(event) {
+  return Array.from(event.dataTransfer?.types || []).includes("Files");
 }
 
 async function fetchJson(url, timeoutMs = 30000) {
@@ -72,7 +79,11 @@ export default function DriveManager() {
   const [showLoadMoreButton, setShowLoadMoreButton] = useState(false);
   const [sessionTimedOut, setSessionTimedOut] = useState(false);
   const [folderHistory, setFolderHistory] = useState([]);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const scrollContainerRef = useRef(null);
+  const dragDepthRef = useRef(0);
   const loadingMoreRef = useRef(false);
   const nextPageTokenRef = useRef(null);
   const selectedFolderIdRef = useRef("root");
@@ -363,7 +374,6 @@ export default function DriveManager() {
       nextPageTokenRef.current = null;
       setNextPageToken(null);
       setShowLoadMoreButton(false);
-      setSidebarCollapsed(true);
       setExpandedIds((prev) => new Set(prev).add(folderId));
 
       const folder = findFolder(folderTree, folderId);
@@ -440,6 +450,179 @@ export default function DriveManager() {
     loadFolderChildren(selectedFolderId);
   }, [selectedFolderId, loadFiles, loadFolderChildren]);
 
+  const handleItemDeleted = useCallback((item) => {
+    if (item.kind === "folder" || item.type === "folder") {
+      setSubfolders((prev) => prev.filter((folder) => folder.id !== item.id));
+      setFolderTree((prev) => removeFolderFromTree(prev, item.id));
+      return;
+    }
+
+    setFiles((prev) => prev.filter((file) => file.id !== item.id));
+    if (previewFile?.id === item.id) {
+      setPreviewFile(null);
+    }
+  }, [previewFile?.id]);
+
+  const handleItemRenamed = useCallback((item) => {
+    if (item.kind === "folder" || item.type === "folder") {
+      setSubfolders((prev) =>
+        prev
+          .map((folder) =>
+            folder.id === item.id ? { ...folder, name: item.name } : folder,
+          )
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      setFolderTree((prev) => renameFolderInTree(prev, item.id, item.name));
+      return;
+    }
+
+    setFiles((prev) =>
+      prev
+        .map((file) =>
+          file.id === item.id ? { ...file, name: item.name } : file,
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    );
+    if (previewFile?.id === item.id) {
+      setPreviewFile((prev) => (prev ? { ...prev, name: item.name } : prev));
+    }
+  }, [previewFile?.id]);
+
+  const handleItemCopied = useCallback((data) => {
+    if (data.kind === "folder") {
+      const folder = mapFolderForDisplay(data.item);
+      setSubfolders((prev) =>
+        [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      setFolderTree((prev) =>
+        addFolderToTree(prev, selectedFolderIdRef.current, data.item),
+      );
+      setExpandedIds((prev) => new Set(prev).add(selectedFolderIdRef.current));
+      return;
+    }
+
+    if (data.item) {
+      setFiles((prev) =>
+        [...prev, data.item].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+    }
+  }, []);
+
+  const handleCreateFolder = useCallback(async () => {
+    const name = window.prompt("새 폴더 이름을 입력해 주세요.", "새 폴더");
+    const trimmedName = name?.trim();
+    if (!trimmedName) return;
+
+    setIsCreatingFolder(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/drive/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parentId: selectedFolderIdRef.current,
+          name: trimmedName,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "새 폴더를 만들지 못했습니다.");
+      }
+
+      const folder = mapFolderForDisplay(data.folder);
+      setSubfolders((prev) =>
+        [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      setFolderTree((prev) =>
+        addFolderToTree(prev, selectedFolderIdRef.current, data.folder),
+      );
+      setExpandedIds((prev) => new Set(prev).add(selectedFolderIdRef.current));
+    } catch (err) {
+      if (isInsufficientScopeError(err.message)) {
+        await reauthForDriveScope();
+        return;
+      }
+      setError(err.message);
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  }, []);
+
+  const uploadFiles = useCallback(async (droppedFiles) => {
+    if (droppedFiles.length === 0) return;
+
+    const formData = new FormData();
+    formData.set("parentId", selectedFolderIdRef.current);
+    droppedFiles.forEach((file) => formData.append("files", file));
+
+    setIsUploadingFiles(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/drive/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "파일 업로드에 실패했습니다.");
+      }
+
+      const uploadedFiles = data.files || [];
+      setFiles((prev) => {
+        const uploadedIds = new Set(uploadedFiles.map((file) => file.id));
+        return [...uploadedFiles, ...prev.filter((file) => !uploadedIds.has(file.id))]
+          .sort((a, b) => a.name.localeCompare(b.name));
+      });
+    } catch (err) {
+      if (isInsufficientScopeError(err.message)) {
+        await reauthForDriveScope();
+        return;
+      }
+      setError(err.message);
+    } finally {
+      setIsUploadingFiles(false);
+    }
+  }, []);
+
+  const handleDragEnter = useCallback((event) => {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    dragDepthRef.current += 1;
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragOver = useCallback((event) => {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleDragLeave = useCallback((event) => {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (event) => {
+      if (!hasDraggedFiles(event)) return;
+      event.preventDefault();
+      dragDepthRef.current = 0;
+      setIsDragOver(false);
+
+      const droppedFiles = Array.from(event.dataTransfer.files || []);
+      uploadFiles(droppedFiles);
+    },
+    [uploadFiles],
+  );
+
   const isAppLoading =
     !authChecked ||
     (isAuthenticated && !initialFolderReady) ||
@@ -494,7 +677,7 @@ export default function DriveManager() {
               <DriveLogo />
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-semibold text-slate-100 sm:text-xl">
-                  Drive Manager
+                  Google Drive
                 </h1>
                 {serverAuth ? (
                   <p className="hidden text-xs text-slate-400 sm:block">
@@ -510,6 +693,17 @@ export default function DriveManager() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={handleCreateFolder}
+                disabled={isCreatingFolder}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/70 px-2.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/80 active:bg-slate-700/80 disabled:opacity-60 sm:px-4"
+              >
+                <FolderPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {isCreatingFolder ? "생성 중..." : "새폴더"}
+                </span>
+              </button>
               <ViewToggle view={view} onViewChange={setView} />
               {!serverAuth && (
                 <button
@@ -532,8 +726,31 @@ export default function DriveManager() {
 
           <div
             ref={scrollContainerRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-950/25 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-5 sm:pb-5"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`relative min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-950/25 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-5 sm:pb-5 ${
+              isDragOver ? "ring-2 ring-inset ring-sky-400/70" : ""
+            }`}
           >
+            {(isDragOver || isUploadingFiles) && (
+              <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center rounded-2xl border-2 border-dashed border-sky-300/70 bg-slate-950/80 text-center shadow-2xl shadow-slate-950/40 backdrop-blur-sm">
+                <div>
+                  <p className="text-base font-semibold text-slate-100">
+                    {isUploadingFiles
+                      ? "파일 업로드 중..."
+                      : `${currentFolderName}에 파일 추가`}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {isUploadingFiles
+                      ? "업로드가 완료되면 목록에 표시됩니다."
+                      : "여기에 파일을 놓으면 현재 폴더에 업로드됩니다."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {error && (
               <div className="mb-4 rounded-lg border border-red-400/30 bg-red-950/40 px-4 py-3 text-sm text-red-200">
                 {error}
@@ -550,15 +767,23 @@ export default function DriveManager() {
               <FileGrid
                 folders={subfolders}
                 files={files}
+                parentId={selectedFolderId}
                 onFolderClick={handleOpenFolder}
                 onMediaClick={setPreviewFile}
+                onItemCopied={handleItemCopied}
+                onItemDeleted={handleItemDeleted}
+                onItemRenamed={handleItemRenamed}
               />
             ) : (
               <FileList
                 folders={subfolders}
                 files={files}
+                parentId={selectedFolderId}
                 onFolderClick={handleOpenFolder}
                 onMediaClick={setPreviewFile}
+                onItemCopied={handleItemCopied}
+                onItemDeleted={handleItemDeleted}
+                onItemRenamed={handleItemRenamed}
               />
             )}
 

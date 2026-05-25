@@ -107,7 +107,7 @@ export default function LoginScreen() {
       <div className="flex min-h-full flex-col items-center justify-center bg-transparent p-6">
         <div className="mb-8 flex items-center gap-3">
           <DriveLogo />
-          <h1 className="text-2xl font-semibold text-slate-100">Drive Manager</h1>
+          <h1 className="text-2xl font-semibold text-slate-100">Google Drive</h1>
         </div>
         <InAppBrowserGuide appName={inAppBrowser} />
       </div>
@@ -118,7 +118,7 @@ export default function LoginScreen() {
     <div className="flex min-h-full flex-col items-center justify-center bg-transparent p-6">
       <div className="mb-8 flex items-center gap-3">
         <DriveLogo />
-        <h1 className="text-2xl font-semibold text-slate-100">Drive Manager</h1>
+        <h1 className="text-2xl font-semibold text-slate-100">Google Drive</h1>
       </div>
 
       {isSigningIn ? (
@@ -127,7 +127,7 @@ export default function LoginScreen() {
           <p className="mt-4 text-center text-sm leading-6 text-slate-400">
             Google Drive 접근 권한으로 연결 중...
             <br />
-            <span className="text-xs">(Drive 파일 보기 권한 승인 필요)</span>
+            <span className="text-xs">(Drive 파일 관리 권한 승인 필요)</span>
           </p>
         </>
       ) : (

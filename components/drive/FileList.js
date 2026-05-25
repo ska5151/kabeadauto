@@ -1,15 +1,19 @@
 "use client";
 
 import { Folder } from "lucide-react";
-import { isPreviewableFile } from "@/lib/fileType";
+import { isGoogleWorkspaceFile, isPreviewableFile } from "@/lib/fileType";
 import FileMenu from "./FileMenu";
 import FileTypeIcon from "./FileTypeIcon";
 
 export default function FileList({
   folders = [],
   files,
+  parentId,
   onFolderClick,
   onMediaClick,
+  onItemCopied,
+  onItemDeleted,
+  onItemRenamed,
 }) {
   const hasItems = folders.length > 0 || files.length > 0;
 
@@ -48,20 +52,39 @@ export default function FileList({
                 폴더
               </td>
               <td className="px-4 py-3">
-                <FileMenu file={folder} />
+                <FileMenu
+                  file={folder}
+                  parentId={parentId}
+                  onCopied={onItemCopied}
+                  onDeleted={onItemDeleted}
+                  onRenamed={onItemRenamed}
+                />
               </td>
             </tr>
           ))}
           {files.map((file) => {
             const canPreview = isPreviewableFile(file);
+            const canOpenInGoogle =
+              isGoogleWorkspaceFile(file) && file.webViewLink;
+            const canOpen = canPreview || canOpenInGoogle;
+            const handleOpen = () => {
+              if (canOpenInGoogle) {
+                window.open(file.webViewLink, "_blank", "noopener,noreferrer");
+                return;
+              }
+
+              if (canPreview) {
+                onMediaClick?.(file);
+              }
+            };
 
             return (
               <tr
                 key={file.id}
                 className={`group border-b border-slate-700/70 last:border-b-0 hover:bg-slate-800/60 ${
-                  canPreview ? "cursor-pointer" : ""
+                  canOpen ? "cursor-pointer" : ""
                 }`}
-                onClick={() => canPreview && onMediaClick?.(file)}
+                onClick={handleOpen}
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -78,7 +101,13 @@ export default function FileList({
                   {file.typeLabel || file.type}
                 </td>
                 <td className="px-4 py-3">
-                  <FileMenu file={file} />
+                  <FileMenu
+                    file={file}
+                    parentId={parentId}
+                    onCopied={onItemCopied}
+                    onDeleted={onItemDeleted}
+                    onRenamed={onItemRenamed}
+                  />
                 </td>
               </tr>
             );

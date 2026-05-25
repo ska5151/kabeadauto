@@ -1,16 +1,27 @@
 "use client";
 
-import { Download, MoreVertical } from "lucide-react";
+import { Copy, Download, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { downloadDriveFile } from "@/lib/fileType";
 
-export default function FileMenu({ file, buttonClassName = "" }) {
+export default function FileMenu({
+  file,
+  buttonClassName = "",
+  parentId = "root",
+  onCopied,
+  onDeleted,
+  onRenamed,
+}) {
   const [open, setOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [menuStyle, setMenuStyle] = useState(null);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
+  const isBusy = isDownloading || isRenaming || isCopying || isDeleting;
 
   const updateMenuPosition = useCallback(() => {
     const button = buttonRef.current;
@@ -18,7 +29,7 @@ export default function FileMenu({ file, buttonClassName = "" }) {
 
     const rect = button.getBoundingClientRect();
     const menuWidth = 148;
-    const menuHeight = 44;
+    const menuHeight = 176;
     const gap = 4;
     const padding = 8;
 
@@ -87,6 +98,99 @@ export default function FileMenu({ file, buttonClassName = "" }) {
     }
   };
 
+  const handleRename = async (event) => {
+    event.stopPropagation();
+
+    const nextName = window.prompt("새 이름을 입력해 주세요.", file.name);
+    const trimmedName = nextName?.trim();
+    if (!trimmedName || trimmedName === file.name) return;
+
+    setOpen(false);
+    setIsRenaming(true);
+
+    try {
+      const response = await fetch("/api/drive/items", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileId: file.id,
+          name: trimmedName,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "이름 변경에 실패했습니다.");
+      }
+
+      onRenamed?.({ ...file, name: data.item?.name || trimmedName });
+    } catch (error) {
+      alert(error.message || "이름 변경에 실패했습니다.");
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleCopy = async (event) => {
+    event.stopPropagation();
+    setOpen(false);
+    setIsCopying(true);
+
+    try {
+      const response = await fetch("/api/drive/items/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileId: file.id,
+          parentId,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "사본 만들기에 실패했습니다.");
+      }
+
+      onCopied?.(data);
+    } catch (error) {
+      alert(error.message || "사본 만들기에 실패했습니다.");
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleDelete = async (event) => {
+    event.stopPropagation();
+
+    const itemLabel =
+      file.kind === "folder" || file.type === "folder" ? "폴더" : "파일";
+    const confirmed = window.confirm(
+      `${file.name} ${itemLabel}을(를) 삭제하시겠습니까?`,
+    );
+    if (!confirmed) return;
+
+    setOpen(false);
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(
+        `/api/drive/items?fileId=${encodeURIComponent(file.id)}`,
+        { method: "DELETE" },
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "삭제에 실패했습니다.");
+      }
+
+      onDeleted?.(file);
+    } catch (error) {
+      alert(error.message || "삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const menu =
     open && menuStyle
       ? createPortal(
@@ -102,11 +206,38 @@ export default function FileMenu({ file, buttonClassName = "" }) {
             <button
               type="button"
               onClick={handleDownload}
-              disabled={isDownloading}
+              disabled={isBusy}
               className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-slate-800 active:bg-slate-700 disabled:opacity-60"
             >
               <Download className="h-4 w-4 shrink-0 text-slate-400" />
               {isDownloading ? "다운로드 중..." : "다운로드"}
+            </button>
+            <button
+              type="button"
+              onClick={handleRename}
+              disabled={isBusy}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-slate-800 active:bg-slate-700 disabled:opacity-60"
+            >
+              <Pencil className="h-4 w-4 shrink-0 text-slate-400" />
+              {isRenaming ? "변경 중..." : "이름 바꾸기"}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={isBusy}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-slate-800 active:bg-slate-700 disabled:opacity-60"
+            >
+              <Copy className="h-4 w-4 shrink-0 text-slate-400" />
+              {isCopying ? "복제 중..." : "사본 만들기"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isBusy}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-200 transition-colors hover:bg-red-950/60 active:bg-red-950 disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4 shrink-0 text-red-300" />
+              {isDeleting ? "삭제 중..." : "삭제"}
             </button>
           </div>,
           document.body,
