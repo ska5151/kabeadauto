@@ -17,6 +17,14 @@ function FolderItem({
   expandedIds,
   onToggle,
   loadingFolderIds,
+  draggingItemId,
+  dropTargetFolderId,
+  onItemDragStart,
+  onItemDragEnd,
+  onFolderDragOver,
+  onFolderDragLeave,
+  onFolderDrop,
+  parentId = "root",
 }) {
   const hasLoadedChildren = folder.children !== null;
   const hasChildren = hasLoadedChildren && folder.children.length > 0;
@@ -25,11 +33,26 @@ function FolderItem({
   const isSelected = selectedId === folder.id;
   const isLoading = loadingFolderIds.has(folder.id);
   const showChevron = hasChildren || isUnloaded;
+  const isDragging = draggingItemId === folder.id;
+  const isDropTarget = dropTargetFolderId === folder.id;
+  const itemParentId = folder.id === "root" ? "root" : parentId;
 
   return (
     <div>
       <div
-        className="flex items-stretch gap-0.5"
+        draggable={folder.id !== "root"}
+        onDragStart={
+          folder.id !== "root"
+            ? onItemDragStart?.(folder, itemParentId)
+            : undefined
+        }
+        onDragEnd={folder.id !== "root" ? onItemDragEnd : undefined}
+        onDragOver={onFolderDragOver?.(folder.id)}
+        onDragLeave={onFolderDragLeave?.(folder.id)}
+        onDrop={onFolderDrop?.(folder.id)}
+        className={`flex items-stretch gap-0.5 rounded-lg transition-colors ${
+          isDropTarget ? "bg-sky-500/15 ring-1 ring-sky-400/40" : ""
+        } ${isDragging ? "opacity-50" : ""}`}
         style={{ paddingLeft: `${depth * 12}px` }}
       >
         {showChevron ? (
@@ -81,6 +104,14 @@ function FolderItem({
               expandedIds={expandedIds}
               onToggle={onToggle}
               loadingFolderIds={loadingFolderIds}
+              draggingItemId={draggingItemId}
+              dropTargetFolderId={dropTargetFolderId}
+              onItemDragStart={onItemDragStart}
+              onItemDragEnd={onItemDragEnd}
+              onFolderDragOver={onFolderDragOver}
+              onFolderDragLeave={onFolderDragLeave}
+              onFolderDrop={onFolderDrop}
+              parentId={folder.id}
             />
           ))}
         </div>
@@ -99,6 +130,7 @@ export default function Sidebar({
   loadingFolderIds,
   collapsed,
   onToggleCollapse,
+  ...dragProps
 }) {
   return (
     <aside
@@ -153,6 +185,7 @@ export default function Sidebar({
             expandedIds={expandedIds}
             onToggle={onToggle}
             loadingFolderIds={loadingFolderIds}
+            {...dragProps}
           />
         ))}
       </nav>

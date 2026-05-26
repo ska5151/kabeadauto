@@ -11,10 +11,14 @@ export default function FileCard({
   onCopied,
   onDeleted,
   onRenamed,
+  draggingItemId,
+  onItemDragStart,
+  onItemDragEnd,
 }) {
   const canPreview = isPreviewableFile(file);
   const canOpenInGoogle = isGoogleWorkspaceFile(file) && file.webViewLink;
   const canOpen = canPreview || canOpenInGoogle;
+  const isDragging = draggingItemId === file.id;
 
   const handleOpen = () => {
     if (canOpenInGoogle) {
@@ -28,7 +32,14 @@ export default function FileCard({
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/65 transition-all hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20">
+    <div
+      draggable
+      onDragStart={onItemDragStart?.(file, parentId)}
+      onDragEnd={onItemDragEnd}
+      className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/65 transition-all hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20 ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
       <button
         type="button"
         onClick={handleOpen}

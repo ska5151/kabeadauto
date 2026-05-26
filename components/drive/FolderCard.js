@@ -10,9 +10,31 @@ export default function FolderCard({
   onCopied,
   onDeleted,
   onRenamed,
+  draggingItemId,
+  dropTargetFolderId,
+  onItemDragStart,
+  onItemDragEnd,
+  onFolderDragOver,
+  onFolderDragLeave,
+  onFolderDrop,
 }) {
+  const isDragging = draggingItemId === folder.id;
+  const isDropTarget = dropTargetFolderId === folder.id;
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/65 text-left transition-all hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20">
+    <div
+      draggable
+      onDragStart={onItemDragStart?.(folder, parentId)}
+      onDragEnd={onItemDragEnd}
+      onDragOver={onFolderDragOver?.(folder.id)}
+      onDragLeave={onFolderDragLeave?.(folder.id)}
+      onDrop={onFolderDrop?.(folder.id)}
+      className={`group flex flex-col overflow-hidden rounded-xl border bg-slate-900/65 text-left transition-all hover:bg-slate-900/90 hover:shadow-lg hover:shadow-sky-950/20 ${
+        isDropTarget
+          ? "border-sky-400 ring-2 ring-sky-400/60"
+          : "border-slate-700/70 hover:border-sky-400/40"
+      } ${isDragging ? "opacity-50" : ""}`}
+    >
       <button
         type="button"
         onClick={() => onClick?.(folder.id)}

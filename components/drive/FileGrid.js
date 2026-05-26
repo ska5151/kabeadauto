@@ -12,6 +12,7 @@ export default function FileGrid({
   onItemCopied,
   onItemDeleted,
   onItemRenamed,
+  ...dragProps
 }) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -24,6 +25,7 @@ export default function FileGrid({
           onCopied={onItemCopied}
           onDeleted={onItemDeleted}
           onRenamed={onItemRenamed}
+          {...dragProps}
         />
       ))}
       {files.map((file) => (
@@ -35,6 +37,7 @@ export default function FileGrid({
           onCopied={onItemCopied}
           onDeleted={onItemDeleted}
           onRenamed={onItemRenamed}
+          {...dragProps}
         />
       ))}
     </div>

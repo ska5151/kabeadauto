@@ -13,9 +13,16 @@ import MediaPreviewModal from "./MediaPreviewModal";
 import Sidebar from "./Sidebar";
 import ViewToggle from "./ViewToggle";
 import {
+  canDropDriveItemOnFolder,
+  getDriveItemFromDrag,
+  isDriveItemDrag,
+  setDriveItemDragData,
+} from "@/lib/driveDrag";
+import {
   addFolderToTree,
   findFolder,
   findParentFolder,
+  mapDriveFile,
   mapFolderForDisplay,
   removeFolderFromTree,
   renameFolderInTree,
@@ -34,7 +41,8 @@ async function reauthForDriveScope() {
 }
 
 function hasDraggedFiles(event) {
-  return Array.from(event.dataTransfer?.types || []).includes("Files");
+  const types = Array.from(event.dataTransfer?.types || []);
+  return types.includes("Files") && !types.includes("application/x-kabead-drive-item");
 }
 
 async function fetchJson(url, timeoutMs = 30000) {
@@ -82,6 +90,9 @@ export default function DriveManager() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [draggingItem, setDraggingItem] = useState(null);
+  const [dropTargetFolderId, setDropTargetFolderId] = useState(null);
+  const [isMovingItem, setIsMovingItem] = useState(false);
   const scrollContainerRef = useRef(null);
   const dragDepthRef = useRef(0);
   const loadingMoreRef = useRef(false);
@@ -488,6 +499,185 @@ export default function DriveManager() {
     }
   }, [previewFile?.id]);
 
+  const handleItemMoved = useCallback(
+    (data) => {
+      const { item, kind, fromParentId, toParentId } = data;
+      const isFolder = kind === "folder";
+
+      if (fromParentId === selectedFolderIdRef.current) {
+        if (isFolder) {
+          setSubfolders((prev) => prev.filter((folder) => folder.id !== item.id));
+        } else {
+          setFiles((prev) => prev.filter((file) => file.id !== item.id));
+          if (previewFile?.id === item.id) {
+            setPreviewFile(null);
+          }
+        }
+      }
+
+      if (toParentId === selectedFolderIdRef.current) {
+        if (isFolder) {
+          const folder = mapFolderForDisplay(item);
+          setSubfolders((prev) =>
+            [...prev, folder].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+        } else {
+          const file = mapDriveFile(item);
+          setFiles((prev) =>
+            [...prev, file].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+        }
+      }
+
+      if (isFolder) {
+        setFolderTree((prev) => {
+          const existing = findFolder(prev, item.id);
+          let next = removeFolderFromTree(prev, item.id);
+          const folderNode = existing || {
+            id: item.id,
+            name: item.name,
+            children: null,
+          };
+          return addFolderToTree(next, toParentId, {
+            id: folderNode.id,
+            name: item.name,
+            children: folderNode.children,
+          });
+        });
+        setExpandedIds((prev) => new Set(prev).add(toParentId));
+      }
+    },
+    [previewFile?.id],
+  );
+
+  const moveDriveItemToFolder = useCallback(
+    async (item, targetFolderId) => {
+      const sourceParentId = item.parentId || selectedFolderIdRef.current;
+
+      if (
+        !canDropDriveItemOnFolder(item, targetFolderId, folderTree) ||
+        targetFolderId === sourceParentId
+      ) {
+        return;
+      }
+
+      setIsMovingItem(true);
+      setError(null);
+
+      try {
+        const response = await fetch("/api/drive/items/move", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileId: item.id,
+            parentId: targetFolderId,
+            sourceParentId,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || "항목을 이동하지 못했습니다.");
+        }
+
+        handleItemMoved(data);
+      } catch (err) {
+        if (isInsufficientScopeError(err.message)) {
+          await reauthForDriveScope();
+          return;
+        }
+        setError(err.message);
+      } finally {
+        setIsMovingItem(false);
+        setDraggingItem(null);
+        setDropTargetFolderId(null);
+      }
+    },
+    [folderTree, handleItemMoved],
+  );
+
+  const handleItemDragStart = useCallback((item, parentId) => {
+    return (event) => {
+      const isFolder =
+        item.kind === "folder" ||
+        item.type === "folder" ||
+        Object.prototype.hasOwnProperty.call(item, "children");
+      const dragItem = {
+        id: item.id,
+        name: item.name,
+        kind: isFolder ? "folder" : "file",
+        parentId,
+      };
+      setDriveItemDragData(event.dataTransfer, dragItem);
+      setDraggingItem(dragItem);
+    };
+  }, []);
+
+  const handleItemDragEnd = useCallback(() => {
+    setDraggingItem(null);
+    setDropTargetFolderId(null);
+  }, []);
+
+  const handleFolderDragOver = useCallback(
+    (targetFolderId) => {
+      return (event) => {
+        if (!isDriveItemDrag(event)) return;
+
+        const item = getDriveItemFromDrag(event) || draggingItem;
+        if (!canDropDriveItemOnFolder(item, targetFolderId, folderTree)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = "move";
+        setDropTargetFolderId(targetFolderId);
+      };
+    },
+    [draggingItem, folderTree],
+  );
+
+  const handleFolderDragLeave = useCallback((targetFolderId) => {
+    return (event) => {
+      if (!isDriveItemDrag(event)) return;
+      const related = event.relatedTarget;
+      if (related && event.currentTarget.contains(related)) return;
+      setDropTargetFolderId((prev) =>
+        prev === targetFolderId ? null : prev,
+      );
+    };
+  }, []);
+
+  const handleFolderDrop = useCallback(
+    (targetFolderId) => {
+      return (event) => {
+        if (!isDriveItemDrag(event)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = getDriveItemFromDrag(event) || draggingItem;
+        setDropTargetFolderId(null);
+        setDraggingItem(null);
+
+        if (!item) return;
+        moveDriveItemToFolder(item, targetFolderId);
+      };
+    },
+    [draggingItem, moveDriveItemToFolder],
+  );
+
+  const driveDragProps = {
+    draggingItemId: draggingItem?.id ?? null,
+    dropTargetFolderId,
+    isMovingItem,
+    onItemDragStart: handleItemDragStart,
+    onItemDragEnd: handleItemDragEnd,
+    onFolderDragOver: handleFolderDragOver,
+    onFolderDragLeave: handleFolderDragLeave,
+    onFolderDrop: handleFolderDrop,
+  };
+
   const handleItemCopied = useCallback((data) => {
     if (data.kind === "folder") {
       const folder = mapFolderForDisplay(data.item);
@@ -653,6 +843,7 @@ export default function DriveManager() {
           loadingFolderIds={loadingFolderIds}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(true)}
+          {...driveDragProps}
         />
 
         <main
@@ -757,6 +948,12 @@ export default function DriveManager() {
               </div>
             )}
 
+            {isMovingItem && (
+              <div className="mb-4 rounded-lg border border-sky-400/30 bg-sky-950/40 px-4 py-3 text-sm text-sky-200">
+                항목 이동 중...
+              </div>
+            )}
+
             {isLoadingFiles && files.length === 0 && subfolders.length === 0 ? (
               <LoadingFooter message="파일을 불러오는 중..." />
             ) : files.length === 0 && subfolders.length === 0 ? (
@@ -773,6 +970,7 @@ export default function DriveManager() {
                 onItemCopied={handleItemCopied}
                 onItemDeleted={handleItemDeleted}
                 onItemRenamed={handleItemRenamed}
+                {...driveDragProps}
               />
             ) : (
               <FileList
@@ -784,6 +982,7 @@ export default function DriveManager() {
                 onItemCopied={handleItemCopied}
                 onItemDeleted={handleItemDeleted}
                 onItemRenamed={handleItemRenamed}
+                {...driveDragProps}
               />
             )}
 
