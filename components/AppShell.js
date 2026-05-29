@@ -5,9 +5,11 @@ import DailyReportView from "./DailyReportView.js";
 import DriveView from "./DriveView.js";
 import BaljuanaraView from "./BaljuanaraView.js";
 import DaishyuView from "./DaishyuView.js";
+import KbManagerView from "./KbManagerView.js";
 import NotionView from "./NotionView.js";
 import ServerView from "./ServerView.js";
 import {
+  IconBuilding,
   IconChevronDown,
   IconShirt,
   IconServer,
@@ -19,6 +21,7 @@ import {
 const DAILY_REPORT_TAB_ID = "daily-report";
 const DRIVE_TAB_ID = "drive";
 const NOTION_TAB_ID = "notion";
+const KBMANAGER_TAB_ID = "kbmanager";
 const IDC_TAB_ID = "idc";
 const BALJUANARA_TAB_ID = "baljuanara";
 const DAISHYU_TAB_ID = "daishyu";
@@ -43,6 +46,8 @@ function renderTabContent(tabId) {
       return <NotionView />;
     case DAILY_REPORT_TAB_ID:
       return <DailyReportView />;
+    case KBMANAGER_TAB_ID:
+      return <KbManagerView />;
     case IDC_TAB_ID:
       return <ServerView />;
     case BALJUANARA_TAB_ID:
@@ -66,6 +71,12 @@ export function createMenuItems() {
         { id: NOTION_TAB_ID, label: "TODO" },
         { id: DAILY_REPORT_TAB_ID, label: "일일 보고" },
       ],
+    },
+    {
+      id: "company",
+      label: "사내",
+      icon: <IconBuilding />,
+      tabs: [{ id: KBMANAGER_TAB_ID, label: "kbmanager" }],
     },
     {
       id: "server",

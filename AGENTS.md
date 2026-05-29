@@ -23,6 +23,7 @@ Admin Portal 스타일 **2열 레이아웃** (`components/AppShell.js`).
 | 우측 하단 | 활성 탭의 `content` 표시 (탭 클릭 시 전환) |
 
 - 좌측 메뉴 **개인** 하위 메뉴에는 **DRIVE**, **TODO**, **일일보고**가 있으며 각각 `DriveView`, `NotionView`, `DailyReportView`가 표시됩니다 (`createMenuItems()`).
+- 좌측 메뉴 **사내** 하위 메뉴에는 **kbmanager**가 있으며 `KbManagerView`가 표시됩니다 (`createMenuItems()`). **6개월 지난 로그 삭제**는 `app/api/kbmanager/delete-old-logs`로 `pslist_log_m`·`pslist_log_d` 6개월 이전 데이터를 삭제합니다.
 - **TODO** 메뉴는 `app/api/notion-table/route.js`를 통해 `NOTION_DATABASE_ID` 데이터베이스에서 `PARA = Project 또는 Area` 항목을 조회하고, `PARA` 그룹별 보드로 표시·수정합니다.
 - **발주나라 → 운영 배포** 메뉴는 `BaljuanaraView` + `app/api/baljuanara-deploy/*`로 발주나라 deploy 하네스(`D:\project\발주나라\deploy`의 `/ui` 대시보드)와 동일한 SSH 배포 UI·API를 Next.js에서 제공합니다.
 - 메뉴·탭 추가 시 `components/AppShell.js`의 `createMenuItems()`에 `{ id, label, icon?, tab?: { id, label, content } }` 형태로 넣습니다.
@@ -120,6 +121,13 @@ MYSQL_PORT_DAISSUE=3306
 MYSQL_USER_DAISSUE=
 MYSQL_PASSWORD_DAISSUE=
 MYSQL_DATABASE_DAISSUE=
+
+# kbmanager DB (로그 정리)
+MYSQL_HOST_KBMANAGER=
+MYSQL_PORT_KBMANAGER=3306
+MYSQL_USER_KBMANAGER=
+MYSQL_PASSWORD_KBMANAGER=
+MYSQL_DATABASE_KBMANAGER=
 
 # Notion API
 NOTION_API_TOKEN=
