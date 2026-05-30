@@ -3,12 +3,13 @@ import { deleteOldKbmanagerLogs } from "../../../../lib/queries/kbmanager-logs.j
 
 export async function POST() {
   try {
-    const { cutoff, affectedRows } = await deleteOldKbmanagerLogs();
+    const { db, cutoff, affectedRows } = await deleteOldKbmanagerLogs();
 
     if (affectedRows === 0) {
       return NextResponse.json({
         ok: false,
         message: "삭제 할 자료가 없거나 삭제 오류 !!!",
+        db,
         cutoff,
         affectedRows,
       });
@@ -17,6 +18,7 @@ export async function POST() {
     return NextResponse.json({
       ok: true,
       message: "삭제 완료 !!!",
+      db,
       cutoff,
       affectedRows,
     });

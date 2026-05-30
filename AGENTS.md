@@ -23,7 +23,7 @@ Admin Portal 스타일 **2열 레이아웃** (`components/AppShell.js`).
 | 우측 하단 | 활성 탭의 `content` 표시 (탭 클릭 시 전환) |
 
 - 좌측 메뉴 **개인** 하위 메뉴에는 **DRIVE**, **TODO**, **일일보고**가 있으며 각각 `DriveView`, `NotionView`, `DailyReportView`가 표시됩니다 (`createMenuItems()`).
-- 좌측 메뉴 **사내** 하위 메뉴에는 **kbmanager**가 있으며 `KbManagerView`가 표시됩니다 (`createMenuItems()`). **6개월 지난 로그 삭제**는 `app/api/kbmanager/delete-old-logs`로 `pslist_log_m`·`pslist_log_d` 6개월 이전 데이터를 삭제합니다.
+- 좌측 메뉴 **사내** 하위 메뉴에는 **kbmanager**가 있으며 `KbManagerView`가 표시됩니다 (`createMenuItems()`). **6개월 지난 로그 삭제**는 `app/api/kbmanager/delete-old-logs`로 `pslist_log_m`·`pslist_log_d` 6개월 이전 데이터를 삭제합니다. **6개월 지난 문자이력 삭제**는 `app/api/kbmanager/delete-old-message-history`로 kbmanager DB의 `tbl_submit_end`와 `.env`의 `# idc database` 섹션에 있는 IDC DB들의 `sms_send_hist` 6개월 이전 데이터를 순차 삭제합니다. 실행 결과는 하단 **로그 출력** 터미널에 `kbmanager 처리 완료`, `dt01 처리 완료`처럼 DB별 완료 상태로 표시합니다.
 - **TODO** 메뉴는 `app/api/notion-table/route.js`를 통해 `NOTION_DATABASE_ID` 데이터베이스에서 `PARA = Project 또는 Area` 항목을 조회하고, `PARA` 그룹별 보드로 표시·수정합니다.
 - **발주나라 → 운영 배포** 메뉴는 `BaljuanaraView` + `app/api/baljuanara-deploy/*`로 발주나라 deploy 하네스(`D:\project\발주나라\deploy`의 `/ui` 대시보드)와 동일한 SSH 배포 UI·API를 Next.js에서 제공합니다.
 - 메뉴·탭 추가 시 `components/AppShell.js`의 `createMenuItems()`에 `{ id, label, icon?, tab?: { id, label, content } }` 형태로 넣습니다.
@@ -128,6 +128,17 @@ MYSQL_PORT_KBMANAGER=3306
 MYSQL_USER_KBMANAGER=
 MYSQL_PASSWORD_KBMANAGER=
 MYSQL_DATABASE_KBMANAGER=
+
+# idc database (문자 이력 정리 대상 DB 목록)
+{
+  "dt01": {
+    "host": "",
+    "user": "",
+    "password": "",
+    "database": "",
+    "port": 3306
+  }
+}
 
 # Notion API
 NOTION_API_TOKEN=
